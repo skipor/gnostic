@@ -4847,7 +4847,7 @@ func NewSchema(in interface{}, context *compiler.Context) (*Schema, error) {
 		message := fmt.Sprintf("has unexpected value: %+v (%T)", in, in)
 		errors = append(errors, compiler.NewError(context, message))
 	} else {
-		allowedKeys := []string{"$ref", "additionalProperties", "allOf", "default", "description", "discriminator", "enum", "example", "exclusiveMaximum", "exclusiveMinimum", "externalDocs", "format", "items", "maxItems", "maxLength", "maxProperties", "maximum", "minItems", "minLength", "minProperties", "minimum", "multipleOf", "pattern", "properties", "readOnly", "required", "title", "type", "uniqueItems", "xml"}
+		allowedKeys := []string{"$ref", "additionalProperties", "allOf", "default", "description", "discriminator", "enum", "example", "exclusiveMaximum", "exclusiveMinimum", "externalDocs", "format", "items", "maxItems", "maxLength", "maxProperties", "maximum", "minItems", "minLength", "minProperties", "minimum", "multipleOf", "oneOf", "pattern", "properties", "readOnly", "required", "title", "type", "uniqueItems", "xml"}
 		allowedPatterns := []*regexp.Regexp{pattern0}
 		invalidKeys := compiler.InvalidKeysInMap(m, allowedKeys, allowedPatterns)
 		if len(invalidKeys) > 0 {
@@ -5194,7 +5194,23 @@ func NewSchema(in interface{}, context *compiler.Context) (*Schema, error) {
 				errors = append(errors, err)
 			}
 		}
-		// repeated NamedAny vendor_extension = 31;
+		// repeated Schema one_of = 31;
+		v31 := compiler.MapValueForKey(m, "oneOf")
+		if v31 != nil {
+			// repeated Schema
+			x.OneOf = make([]*Schema, 0)
+			a, ok := v31.([]interface{})
+			if ok {
+				for _, item := range a {
+					y, err := NewSchema(item, compiler.NewContext("oneOf", context))
+					if err != nil {
+						errors = append(errors, err)
+					}
+					x.OneOf = append(x.OneOf, y)
+				}
+			}
+		}
+		// repeated NamedAny vendor_extension = 32;
 		// MAP: Any ^x-
 		x.VendorExtension = make([]*NamedAny, 0)
 		for _, item := range m {
@@ -6882,6 +6898,14 @@ func (m *Schema) ResolveReferences(root string) (interface{}, error) {
 			errors = append(errors, err)
 		}
 	}
+	for _, item := range m.OneOf {
+		if item != nil {
+			_, err := item.ResolveReferences(root)
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
 	for _, item := range m.VendorExtension {
 		if item != nil {
 			_, err := item.ResolveReferences(root)
@@ -8559,6 +8583,14 @@ func (m *Schema) ToRawInfo() interface{} {
 		info = append(info, yaml.MapItem{Key: "example", Value: m.Example.ToRawInfo()})
 	}
 	// &{Name:example Type:Any StringEnumValues:[] MapType: Repeated:false Pattern: Implicit:false Description:}
+	if len(m.OneOf) != 0 {
+		items := make([]interface{}, 0)
+		for _, item := range m.OneOf {
+			items = append(items, item.ToRawInfo())
+		}
+		info = append(info, yaml.MapItem{Key: "oneOf", Value: items})
+	}
+	// &{Name:oneOf Type:Schema StringEnumValues:[] MapType: Repeated:true Pattern: Implicit:false Description:}
 	if m.VendorExtension != nil {
 		for _, item := range m.VendorExtension {
 			info = append(info, yaml.MapItem{Key: item.Name, Value: item.Value.ToRawInfo()})

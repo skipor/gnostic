@@ -604,6 +604,7 @@ message Schema {
   ExternalDocs external_docs = 29;
   Any example = 30;
   repeated NamedAny vendor_extension = 31;
+  repeated Schema one_of = 32; // HACK(skipor): extention for in Yandex use.
 }
 
 message SchemaItem {

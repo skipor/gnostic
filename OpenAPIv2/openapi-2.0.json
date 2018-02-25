@@ -1057,7 +1057,14 @@
         "externalDocs": {
           "$ref": "#/definitions/externalDocs"
         },
-        "example": {}
+        "example": {},
+        "oneOf": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/schema"
+          },
+          "minItems": 1
+        }
       },
       "additionalProperties": false
     },
