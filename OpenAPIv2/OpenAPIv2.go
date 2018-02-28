@@ -7242,9 +7242,10 @@ func (m *Document) ToRawInfo() interface{} {
 	if len(m.Produces) != 0 {
 		info = append(info, yaml.MapItem{Key: "produces", Value: m.Produces})
 	}
-	if m.Paths != nil {
+	// HACK(skipor): required by OpenAPI spec
+	//if m.Paths != nil {
 		info = append(info, yaml.MapItem{Key: "paths", Value: m.Paths.ToRawInfo()})
-	}
+	//}
 	// &{Name:paths Type:Paths StringEnumValues:[] MapType: Repeated:false Pattern: Implicit:false Description:}
 	if m.Definitions != nil {
 		info = append(info, yaml.MapItem{Key: "definitions", Value: m.Definitions.ToRawInfo()})
@@ -7618,15 +7619,16 @@ func (m *Headers) ToRawInfo() interface{} {
 // ToRawInfo returns a description of Info suitable for JSON or YAML export.
 func (m *Info) ToRawInfo() interface{} {
 	info := yaml.MapSlice{}
-	if m.Title != "" {
+	// HACK(skipor): required by OpenAPI spec
+	//if m.Title != "" {
 		info = append(info, yaml.MapItem{Key: "title", Value: m.Title})
-	}
+	//}
 	if m.Version != "" {
 		info = append(info, yaml.MapItem{Key: "version", Value: m.Version})
 	}
-	if m.Description != "" {
+	//if m.Description != "" {
 		info = append(info, yaml.MapItem{Key: "description", Value: m.Description})
-	}
+	//}
 	if m.TermsOfService != "" {
 		info = append(info, yaml.MapItem{Key: "termsOfService", Value: m.TermsOfService})
 	}
@@ -8183,6 +8185,10 @@ func (m *PathParameterSubSchema) ToRawInfo() interface{} {
 
 // ToRawInfo returns a description of Paths suitable for JSON or YAML export.
 func (m *Paths) ToRawInfo() interface{} {
+	// HACK(skipor)
+	if m == nil {
+		return yaml.MapSlice{}
+	}
 	info := yaml.MapSlice{}
 	if m.VendorExtension != nil {
 		for _, item := range m.VendorExtension {
@@ -8369,9 +8375,10 @@ func (m *QueryParameterSubSchema) ToRawInfo() interface{} {
 // ToRawInfo returns a description of Response suitable for JSON or YAML export.
 func (m *Response) ToRawInfo() interface{} {
 	info := yaml.MapSlice{}
-	if m.Description != "" {
+	// HACK(skipor): required
+	//if m.Description != "" {
 		info = append(info, yaml.MapItem{Key: "description", Value: m.Description})
-	}
+	//}
 	if m.Schema != nil {
 		info = append(info, yaml.MapItem{Key: "schema", Value: m.Schema.ToRawInfo()})
 	}
