@@ -3408,7 +3408,7 @@ func NewReference(in interface{}, context *compiler.Context) (*Reference, error)
 			message := fmt.Sprintf("is missing required %s: %+v", compiler.PluralProperties(len(missingKeys)), strings.Join(missingKeys, ", "))
 			errors = append(errors, compiler.NewError(context, message))
 		}
-		allowedKeys := []string{"$ref"}
+		allowedKeys := []string{"$ref", "description"}
 		var allowedPatterns []*regexp.Regexp
 		invalidKeys := compiler.InvalidKeysInMap(m, allowedKeys, allowedPatterns)
 		if len(invalidKeys) > 0 {
@@ -3421,6 +3421,15 @@ func NewReference(in interface{}, context *compiler.Context) (*Reference, error)
 			x.XRef, ok = v1.(string)
 			if !ok {
 				message := fmt.Sprintf("has unexpected value for $ref: %+v (%T)", v1, v1)
+				errors = append(errors, compiler.NewError(context, message))
+			}
+		}
+		// string description = 2;
+		v2 := compiler.MapValueForKey(m, "description")
+		if v2 != nil {
+			x.Description, ok = v2.(string)
+			if !ok {
+				message := fmt.Sprintf("has unexpected value for description: %+v (%T)", v2, v2)
 				errors = append(errors, compiler.NewError(context, message))
 			}
 		}
@@ -6212,6 +6221,13 @@ func (m *Reference) ResolveReferences(root string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		if info != nil {
+			replacement, err := NewReference(info, nil)
+			if err == nil {
+				*m = *replacement
+				return m.ResolveReferences(root)
+			}
+		}
 		return info, nil
 	}
 	return nil, compiler.NewErrorGroupOrNil(errors)
@@ -7805,6 +7821,9 @@ func (m *Reference) ToRawInfo() interface{} {
 	info := yaml.MapSlice{}
 	if m.XRef != "" {
 		info = append(info, yaml.MapItem{Key: "$ref", Value: m.XRef})
+	}
+	if m.Description != "" {
+		info = append(info, yaml.MapItem{Key: "description", Value: m.Description})
 	}
 	return info
 }

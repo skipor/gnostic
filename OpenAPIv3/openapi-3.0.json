@@ -709,6 +709,9 @@
       "properties": {
         "$ref": {
           "type": "string"
+        },
+        "description": {
+          "type": "string"
         }
       }
     },
